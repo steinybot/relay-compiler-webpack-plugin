@@ -1,5 +1,6 @@
 import { validate } from 'schema-utils';
 import spawn from 'cross-spawn';
+import { WebpackError } from 'webpack';
 
 const schema = {
   type: "object",
@@ -40,11 +41,11 @@ class RelayCompiler {
     if (((_b = subprocess.stderr) == null ? void 0 : _b.byteLength) > 0) {
       const errorMessage = subprocess.stderr.toString("utf-8");
       if (errorMessage.toLowerCase().includes(FAILED)) {
-        this.error = new Error(errorMessage);
+        this.error = new WebpackError(errorMessage);
       }
     }
-    if (this.error === void 0) {
-      this.error = subprocess.error;
+    if (this.error === void 0 && subprocess.error !== void 0) {
+      this.error = new WebpackError(subprocess.error.message);
     }
   }
   watch(callback) {
@@ -59,7 +60,7 @@ class RelayCompiler {
       let failed = false;
       this.subprocess.on("error", (error) => {
         if (!failed) {
-          this.error = error;
+          this.error = new WebpackError(error.message);
           failed = true;
           callback == null ? void 0 : callback();
         }
@@ -71,7 +72,7 @@ class RelayCompiler {
       });
       (_d = this.subprocess.stderr) == null ? void 0 : _d.on("end", () => {
         if (errorMessage.toLowerCase().includes(FAILED) && !failed) {
-          this.error = new Error(errorMessage);
+          this.error = new WebpackError(errorMessage);
           failed = true;
           callback == null ? void 0 : callback();
         }

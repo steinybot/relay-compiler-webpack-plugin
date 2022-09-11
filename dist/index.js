@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var schemaUtils = require('schema-utils');
 var spawn = require('cross-spawn');
+var webpack = require('webpack');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -48,11 +49,11 @@ class RelayCompiler {
     if (((_b = subprocess.stderr) == null ? void 0 : _b.byteLength) > 0) {
       const errorMessage = subprocess.stderr.toString("utf-8");
       if (errorMessage.toLowerCase().includes(FAILED)) {
-        this.error = new Error(errorMessage);
+        this.error = new webpack.WebpackError(errorMessage);
       }
     }
-    if (this.error === void 0) {
-      this.error = subprocess.error;
+    if (this.error === void 0 && subprocess.error !== void 0) {
+      this.error = new webpack.WebpackError(subprocess.error.message);
     }
   }
   watch(callback) {
@@ -67,7 +68,7 @@ class RelayCompiler {
       let failed = false;
       this.subprocess.on("error", (error) => {
         if (!failed) {
-          this.error = error;
+          this.error = new webpack.WebpackError(error.message);
           failed = true;
           callback == null ? void 0 : callback();
         }
@@ -79,7 +80,7 @@ class RelayCompiler {
       });
       (_d = this.subprocess.stderr) == null ? void 0 : _d.on("end", () => {
         if (errorMessage.toLowerCase().includes(FAILED) && !failed) {
-          this.error = new Error(errorMessage);
+          this.error = new webpack.WebpackError(errorMessage);
           failed = true;
           callback == null ? void 0 : callback();
         }
