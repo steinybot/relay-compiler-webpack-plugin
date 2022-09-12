@@ -52,7 +52,7 @@ class RelayCompiler {
         this.error = new webpack.WebpackError(errorMessage);
       }
     }
-    if (this.error === void 0 && subprocess.error !== void 0) {
+    if (this.error === void 0 && subprocess.error !== void 0 && subprocess.error !== null) {
       this.error = new webpack.WebpackError(subprocess.error.message);
     }
   }
